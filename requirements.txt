@@ -1,0 +1,18 @@
+# Essential packages only
+
+# Core ML/AI Libraries (Required)
+ultralytics==8.3.184          # YOLOv8 for phone detection
+torch==2.8.0                  # Deep learning framework
+torchvision==0.23.0           # Computer vision utilities
+mediapipe==0.10.21            # Hand and pose detection
+opencv-python==4.12.0.88      # Computer vision and video processing
+
+# Scientific Computing (Required)
+numpy==2.2.6                  # Numerical computing
+scipy==1.16.1                 # Scientific computing
+
+# Essential Dependencies
+PyYAML==6.0.2                 # Configuration files
+requests==2.32.5              # HTTP requests
+tqdm==4.67.1                  # Progress bars
+Pillow==11.3.0                # Image processing
