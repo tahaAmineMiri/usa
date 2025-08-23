@@ -1,10 +1,8 @@
 import cv2
-from utils.detector import (
-    detect_intersections_only,
-    analyze_phone_usage_complete,
-    calculate_phone_hand_intersections,
-    calculate_box_intersection
-)
+from utils.intersection_only import detect_intersections_only
+from utils.complete_analysis import analyze_phone_usage_complete
+from utils.phone_hand_intersections import calculate_phone_hand_intersections
+from utils.box_intersection import calculate_box_intersection
 
 def main():
     # Load your image
