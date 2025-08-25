@@ -218,3 +218,5 @@ images/
 __pycache__/
 *.pyc
 venv/
+
+cellphone_dataset_yolov8/

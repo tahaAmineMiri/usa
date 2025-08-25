@@ -6,7 +6,7 @@ from utils.box_intersection import calculate_box_intersection
 
 def main():
     # Load your image
-    image = cv2.imread("./images/usephone.png")
+    image = cv2.imread("./images/remote.png")
     
     if image is None:
         print("❌ Error: Could not load image. Please check the file path.")
