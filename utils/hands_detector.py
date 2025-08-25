@@ -11,9 +11,7 @@ def detect_hands_only_enhanced(image: np.ndarray, confidence: float = 0.5, debug
     from .phone_detector import detect_persons_first
     
     # Stage 1: Detect persons
-    if debug:
-        print("🏃 Stage 1: Detecting persons for hand detection...")
-    persons = detect_persons_first(image, 0.3, debug)
+    persons = detect_persons_first(image, 0.3, debug=False)
     
     if not persons:
         if debug:
@@ -21,9 +19,6 @@ def detect_hands_only_enhanced(image: np.ndarray, confidence: float = 0.5, debug
         return image.copy(), []
     
     # Stage 2: Detect hands within each person's area
-    if debug:
-        print(f"\n👐 Stage 2: Detecting hands within {len(persons)} person area(s)...")
-    
     model_pose = YOLO("models/yolo11x-pose.pt")
     hand_boxes = []
     image_with_boxes = image.copy()
@@ -44,11 +39,6 @@ def detect_hands_only_enhanced(image: np.ndarray, confidence: float = 0.5, debug
         
         if person_crop.size == 0:
             continue
-        
-        if debug:
-            print(f"   👤 Processing person {person_idx + 1} for hands...")
-            print(f"      📦 Person bbox: ({x1},{y1})-({x2},{y2})")
-            print(f"      ✂️ Crop region: ({crop_x1},{crop_y1})-({crop_x2},{crop_y2})")
         
         # Multiple detection attempts with different parameters
         detection_configs = [
@@ -96,13 +86,9 @@ def detect_hands_only_enhanced(image: np.ndarray, confidence: float = 0.5, debug
                                         }
                                         
                                         person_hand_candidates.append(hand_candidate)
-                                        
-                                        if debug:
-                                            print(f"      👐 Hand candidate: {hand_name} at ({int(orig_x)},{int(orig_y)}) via {desc}")
                 
             except Exception as e:
-                if debug:
-                    print(f"      ❌ {desc} detection failed: {str(e)[:50]}")
+                continue  # Silently continue on detection failures
         
         # Apply spatial constraints - hands should be reasonably close to person
         valid_hands_for_person = []
@@ -132,26 +118,14 @@ def detect_hands_only_enhanced(image: np.ndarray, confidence: float = 0.5, debug
                 if distance_to_person <= max_hand_distance:
                     candidate['distance_to_person'] = distance_to_person
                     valid_hands_for_person.append(candidate)
-                    
-                    if debug:
-                        print(f"      ✅ Hand kept: {candidate['name']} at distance {distance_to_person:.0f} (max: {max_hand_distance:.0f})")
-                else:
-                    if debug:
-                        print(f"      ❌ Hand rejected: {candidate['name']} too far ({distance_to_person:.0f} > {max_hand_distance:.0f})")
-            else:
-                if debug:
-                    print(f"      ❌ Hand rejected: {candidate['name']} outside extended person area")
         
         # Remove duplicate hands (same hand detected multiple times)
-        unique_hands = remove_duplicate_hands(valid_hands_for_person, debug=debug)
+        unique_hands = remove_duplicate_hands(valid_hands_for_person, debug=False)
         
         # Limit to 2 hands per person (one left, one right)
-        final_hands = limit_hands_per_person(unique_hands, debug=debug)
+        final_hands = limit_hands_per_person(unique_hands, debug=False)
         
         hand_boxes.extend(final_hands)
-        
-        if debug:
-            print(f"      ✅ Final hands for person {person_idx + 1}: {len(final_hands)}")
     
     # Draw visualization
     for person in persons:
@@ -165,7 +139,7 @@ def detect_hands_only_enhanced(image: np.ndarray, confidence: float = 0.5, debug
                    (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
     
     if debug:
-        print(f"👐 Total constrained hands detected: {len(hand_boxes)}")
+        print(f"👐 Hands detected: {len(hand_boxes)} across {len(persons)} person(s)")
     
     return image_with_boxes, hand_boxes
 
@@ -187,8 +161,6 @@ def remove_duplicate_hands(hands: List[Dict], distance_threshold: float = 30.0, 
             # If hands are very close and same type, consider duplicate
             if distance < distance_threshold and hand['name'] == kept_hand['name']:
                 is_duplicate = True
-                if debug:
-                    print(f"         🔄 Duplicate hand removed: {hand['name']} (distance: {distance:.1f})")
                 break
         
         if not is_duplicate:
@@ -207,16 +179,12 @@ def limit_hands_per_person(hands: List[Dict], debug: bool = False) -> List[Dict]
     if left_hands:
         if len(left_hands) > 1:
             left_hands.sort(key=lambda x: x.get('distance_to_person', float('inf')))
-            if debug:
-                print(f"         📏 Keeping closest left hand (distance: {left_hands[0].get('distance_to_person', 0):.0f})")
         final_hands.append(left_hands[0])
     
     # Keep best right hand (closest to person center if multiple)
     if right_hands:
         if len(right_hands) > 1:
             right_hands.sort(key=lambda x: x.get('distance_to_person', float('inf')))
-            if debug:
-                print(f"         📏 Keeping closest right hand (distance: {right_hands[0].get('distance_to_person', 0):.0f})")
         final_hands.append(right_hands[0])
     
     return final_hands

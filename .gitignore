@@ -220,3 +220,6 @@ __pycache__/
 venv/
 
 cellphone_dataset_yolov8/
+
+./output
+*.mp4

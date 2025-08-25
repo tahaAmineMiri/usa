@@ -17,7 +17,8 @@ def detect_persons_first(image: np.ndarray, confidence: float = 0.3, debug: bool
             break
     
     if person_class_id is None:
-        print("❌ Person class not found in model!")
+        if debug:
+            print("❌ Person class not found in model!")
         return []
     
     results = model(image, conf=confidence, classes=[person_class_id], verbose=False)
@@ -36,12 +37,9 @@ def detect_persons_first(image: np.ndarray, confidence: float = 0.3, debug: bool
                     'center': (int((x1 + x2) / 2), int((y1 + y2) / 2))
                 }
                 persons.append(person_data)
-                
-                if debug:
-                    print(f"👤 Person detected: conf={conf:.3f}, bbox=({int(x1)},{int(y1)})-({int(x2)},{int(y2)})")
     
     if debug:
-        print(f"👥 Total persons detected: {len(persons)}")
+        print(f"👥 Persons detected: {len(persons)}")
     
     return persons
 
@@ -50,8 +48,6 @@ def detect_phone_in_image_enhanced(image: np.ndarray, confidence: float = 0.2, d
     Constrained phone detection that only looks within person bounding boxes.
     """
     # Stage 1: Detect persons
-    if debug:
-        print("🏃 Stage 1: Detecting persons...")
     persons = detect_persons_first(image, 0.3, debug)
     
     if not persons:
@@ -60,9 +56,6 @@ def detect_phone_in_image_enhanced(image: np.ndarray, confidence: float = 0.2, d
         return image.copy(), []
     
     # Stage 2: Detect phones within each person's area
-    if debug:
-        print(f"\n📱 Stage 2: Detecting phones within {len(persons)} person area(s)...")
-    
     model = YOLO("models/yolo11x.pt")
     phone_boxes = []
     image_with_boxes = image.copy()
@@ -83,11 +76,6 @@ def detect_phone_in_image_enhanced(image: np.ndarray, confidence: float = 0.2, d
         
         if person_crop.size == 0:
             continue
-        
-        if debug:
-            print(f"   👤 Processing person {person_idx + 1}...")
-            print(f"      📦 Person bbox: ({x1},{y1})-({x2},{y2})")
-            print(f"      ✂️ Crop region: ({crop_x1},{crop_y1})-({crop_x2},{crop_y2})")
         
         # Multiple detection attempts with different parameters
         detection_configs = [
@@ -127,13 +115,9 @@ def detect_phone_in_image_enhanced(image: np.ndarray, confidence: float = 0.2, d
                             }
                             
                             person_phone_candidates.append(phone_candidate)
-                            
-                            if debug:
-                                print(f"      📱 Phone candidate: {class_name} (conf: {conf_score:.4f}) via {desc}")
                 
             except Exception as e:
-                if debug:
-                    print(f"      ❌ {desc} detection failed: {str(e)[:50]}")
+                continue  # Silently continue on detection failures
         
         # Apply spatial constraints - phones must overlap with person bounding box
         valid_phones_for_person = []
@@ -157,30 +141,16 @@ def detect_phone_in_image_enhanced(image: np.ndarray, confidence: float = 0.2, d
                 if overlap_ratio >= 0.3:
                     candidate['overlap_ratio'] = overlap_ratio
                     valid_phones_for_person.append(candidate)
-                    
-                    if debug:
-                        print(f"      ✅ Phone kept: {overlap_ratio:.1%} overlap, conf={candidate['confidence']:.4f}")
-                else:
-                    if debug:
-                        print(f"      ❌ Phone rejected: {overlap_ratio:.1%} overlap (< 30%)")
-            else:
-                if debug:
-                    print(f"      ❌ Phone rejected: no overlap with person")
         
         # Remove duplicates using IoU
-        unique_phones = remove_duplicate_detections(valid_phones_for_person, debug=debug)
+        unique_phones = remove_duplicate_detections(valid_phones_for_person, debug=False)
         
         # Limit to 1 phone per person (take highest confidence)
         if len(unique_phones) > 1:
             unique_phones.sort(key=lambda x: x['confidence'], reverse=True)
             unique_phones = unique_phones[:1]
-            if debug:
-                print(f"      📏 Limited to 1 phone per person (highest conf: {unique_phones[0]['confidence']:.4f})")
         
         phone_boxes.extend(unique_phones)
-        
-        if debug:
-            print(f"      ✅ Final phones for person {person_idx + 1}: {len(unique_phones)}")
     
     # Draw visualization
     for person in persons:
@@ -194,7 +164,7 @@ def detect_phone_in_image_enhanced(image: np.ndarray, confidence: float = 0.2, d
                    (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
     
     if debug:
-        print(f"📱 Total constrained phones detected: {len(phone_boxes)}")
+        print(f"📱 Phones detected: {len(phone_boxes)} across {len(persons)} person(s)")
     
     return image_with_boxes, phone_boxes
 
@@ -216,8 +186,6 @@ def remove_duplicate_detections(detections: List[Dict], iou_threshold: float = 0
             
             if iou > iou_threshold:
                 is_duplicate = True
-                if debug:
-                    print(f"         🔄 Duplicate removed: IoU={iou:.3f}")
                 break
         
         if not is_duplicate:

@@ -26,22 +26,15 @@ def analyze_phone_usage_complete(image: np.ndarray, phone_confidence: float = 0.
         Tuple of (final_visualization_image, complete_analysis_results)
     """
     if debug:
-        print("🚀 CONSTRAINED COMPLETE PHONE USAGE ANALYSIS")
-        print("=" * 60)
+        print("🚀 Starting complete phone usage analysis...")
     
     # Step 1: Detect phones using constrained detection
-    if debug:
-        print("📱 Step 1: Detecting phones within person bounding boxes...")
     phone_image, phone_boxes = detect_phone_in_image_enhanced(image, phone_confidence, debug)
     
     # Step 2: Detect hands using constrained detection
-    if debug:
-        print(f"\n👐 Step 2: Detecting hands within person bounding boxes...")
     hand_image, hand_boxes = detect_hands_only_enhanced(image, hand_confidence, debug)
     
     # Step 3: Calculate intersections
-    if debug:
-        print(f"\n🎯 Step 3: Analyzing intersections...")
     intersection_analysis = calculate_phone_hand_intersections(
         phone_boxes, hand_boxes, min_intersection_area, min_overlap_ratio
     )
@@ -176,15 +169,8 @@ def analyze_phone_usage_complete(image: np.ndarray, phone_confidence: float = 0.
     }
     
     if debug:
-        print(f"\n" + "=" * 60)
-        print(f"🎯 CONSTRAINED ANALYSIS COMPLETE:")
-        print(f"👥 Persons detected: {len(persons_drawn)}")
-        print(f"📱 Phones detected: {len(phone_boxes)}")
-        print(f"👐 Hands detected: {len(hand_boxes)}")
-        print(f"🔄 Total intersections: {intersection_analysis['total_intersections']}")
-        print(f"✅ Valid intersections: {intersection_analysis['valid_intersections']}")
-        print(f"🚨 Usage detected: {'YES' if intersection_analysis['phone_usage_detected'] else 'NO'}")
-        print(f"📊 Persons with usage: {complete_analysis['persons_with_usage']}")
-        print("=" * 60)
+        print(f"✅ Analysis complete: {len(persons_drawn)} persons, {len(phone_boxes)} phones, {len(hand_boxes)} hands, {intersection_analysis['valid_intersections']} valid intersections")
+        if intersection_analysis['phone_usage_detected']:
+            print(f"🚨 Phone usage detected in {complete_analysis['persons_with_usage']} person(s)")
     
     return final_image, complete_analysis

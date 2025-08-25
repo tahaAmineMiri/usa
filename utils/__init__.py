@@ -5,6 +5,7 @@ from .phone_detector import detect_phone_in_image_enhanced
 from .hands_detector import detect_hands_only_enhanced
 from .complete_analysis import analyze_phone_usage_complete
 from .intersection_only import detect_intersections_only
+from .video_processor import process_video_intersections
 
 __all__ = [
     'calculate_box_intersection',
@@ -12,5 +13,6 @@ __all__ = [
     'detect_phone_in_image_enhanced',
     'detect_hands_only_enhanced',
     'analyze_phone_usage_complete',
-    'detect_intersections_only'
+    'detect_intersections_only',
+    'process_video_intersections'
 ]

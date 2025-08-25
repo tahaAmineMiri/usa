@@ -26,22 +26,15 @@ def detect_intersections_only(image: np.ndarray, phone_confidence: float = 0.2,
         Tuple of (image_with_intersection_labels, list_of_intersections)
     """
     if debug:
-        print("🎯 CONSTRAINED INTERSECTION-ONLY DETECTION")
-        print("=" * 60)
+        print("🎯 Detecting phone-hand intersections...")
     
     # Stage 1: Detect phones using constrained detection
-    if debug:
-        print("📱 Detecting phones within person bounding boxes...")
     _, phone_boxes = detect_phone_in_image_enhanced(image, phone_confidence, debug)
     
     # Stage 2: Detect hands using constrained detection  
-    if debug:
-        print(f"\n👐 Detecting hands within person bounding boxes...")
     _, hand_boxes = detect_hands_only_enhanced(image, hand_confidence, debug)
     
     # Stage 3: Calculate intersections
-    if debug:
-        print(f"\n🔄 Calculating intersections...")
     intersection_analysis = calculate_phone_hand_intersections(
         phone_boxes, hand_boxes, min_intersection_area, min_overlap_ratio
     )
@@ -147,11 +140,7 @@ def detect_intersections_only(image: np.ndarray, phone_confidence: float = 0.2,
         enhanced_intersections.append(enhanced_intersection)
     
     if debug:
-        print(f"\n🎯 CONSTRAINED INTERSECTION DETECTION COMPLETE:")
-        print(f"   📱 Phones found: {len(phone_boxes)}")
-        print(f"   👐 Hands found: {len(hand_boxes)}")
-        print(f"   ✅ Valid intersections: {len(valid_intersections)}")
-        print(f"   👥 Persons with phone usage: {len(unique_persons) if 'unique_persons' in locals() else 0}")
-        print("=" * 60)
+        unique_persons_count = len(unique_persons) if 'unique_persons' in locals() else 0
+        print(f"✅ Found {len(valid_intersections)} valid intersections across {unique_persons_count} person(s)")
     
     return labeled_image, enhanced_intersections

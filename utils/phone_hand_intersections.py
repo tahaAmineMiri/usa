@@ -19,11 +19,6 @@ def calculate_phone_hand_intersections(phone_boxes: List[Dict], hand_boxes: List
     intersections = []
     usage_detected = False
     
-    print(f"\n🎯 CALCULATING INTERSECTIONS")
-    print(f"📱 Phones to analyze: {len(phone_boxes)}")
-    print(f"👐 Hands to analyze: {len(hand_boxes)}")
-    print("-" * 40)
-    
     for phone_idx, phone in enumerate(phone_boxes):
         phone_bbox = phone['bbox']
         
@@ -52,16 +47,6 @@ def calculate_phone_hand_intersections(phone_boxes: List[Dict], hand_boxes: List
                 
                 intersections.append(intersection_data)
                 
-                print(f"📍 INTERSECTION FOUND:")
-                print(f"   📱 Phone #{phone_idx}: {phone['class']} (conf: {phone['confidence']:.3f})")
-                print(f"   👐 Hand #{hand_idx}: {hand['name']}")
-                print(f"   📏 Intersection area: {intersection_info['intersection_area']} pixels")
-                print(f"   📊 Phone overlap: {intersection_info['overlap_ratio_box1']:.3f}")
-                print(f"   📊 Hand overlap: {intersection_info['overlap_ratio_box2']:.3f}")
-                print(f"   🎯 IoU: {intersection_info['iou']:.3f}")
-                print(f"   ✅ Meets criteria: {intersection_data['meets_usage_criteria']}")
-                print("-" * 40)
-                
                 if intersection_data['meets_usage_criteria']:
                     usage_detected = True
     
@@ -80,10 +65,5 @@ def calculate_phone_hand_intersections(phone_boxes: List[Dict], hand_boxes: List
             'min_overlap_ratio': min_overlap_ratio
         }
     }
-    
-    print(f"🎯 INTERSECTION ANALYSIS COMPLETE:")
-    print(f"   Total intersections found: {len(intersections)}")
-    print(f"   Valid intersections (meeting criteria): {len(valid_intersections)}")
-    print(f"   Phone usage detected: {'YES' if usage_detected else 'NO'}")
     
     return analysis_result
